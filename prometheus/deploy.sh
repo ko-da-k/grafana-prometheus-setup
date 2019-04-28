@@ -28,7 +28,7 @@ echo Tune shell options && {
     helm upgrade --install \
         --namespace="${NAMESPACE}" \
         --version="${PROMETHEUS_CHART_VERSION}" \
-        -f="prometheus_values.yaml" \
+        -f="values.yaml" \
         "prometheus" \
         stable/prometheus
 }
