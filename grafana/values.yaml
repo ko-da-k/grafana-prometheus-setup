@@ -1,0 +1,60 @@
+rbac:
+  namespace: true
+
+replicas: 3
+
+## Enable persistence using Persistent Volume Claims
+## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  enabled: true
+
+## Pod annotations
+podAnnotations:
+    # 秘密情報が入れ替わったときにpodを入れ替えるためにhash値をアノテーションしておく
+    checksum/extra-secret: ${SECRET_CHECKSUM:?}
+
+## Expose the grafana service to be accessed from outside the cluster (LoadBalancer service).
+## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+## ref: http://kubernetes.io/docs/user-guide/services/
+##
+service:
+  type: NodePort
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "static-ip"
+    kubernetes.io/ingress.allow-http: "false"
+    ingress.gcp.kubernetes.io/pre-shared-cert: "cert-name"
+  path: /*
+  hosts:
+    - ${DOMAIN_URL}
+
+# Use an existing secret for the admin user.
+admin:
+  existingSecret: "grafana-admin"
+
+grafana.ini:
+  server:
+    domain: ${DOMAIN_URL}
+    root_url: https://${DOMAIN_URL}
+  auth.github:
+    enabled: true
+    client_id: ${AUTH_GITHUB_CLIENT_ID:?}
+    client_secret: ${AUTH_GITHUB_CLIENT_SECRET:?}
+    scopes: user:email,read:org
+    auth_url: https://github.com/login/oauth/authorize
+    token_url: https://github.com/login/oauth/access_token
+    api_url: https://api.github.com/user
+    allow_sign_up: true
+    allowed_organizations: organization_name
+  auth.google:
+    enabled: ture
+    client_id: "${AUTH_GOOGLE_CLIENT_ID:?}"
+    client_secret: "${AUTH_GOOGLE_CLIENT_SECRET:?}"
+    scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
+    auth_url: https://accounts.google.com/o/oauth2/auth
+    token_url: https://accounts.google.com/o/oauth2/token
+    allowd_domains: domain.example.com
+    allow_sign_up: true
